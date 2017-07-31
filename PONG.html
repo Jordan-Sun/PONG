@@ -1,0 +1,585 @@
+<html>
+
+	<body>
+
+		<center>
+			<canvas id="screen" width="1024" height="720"></canvas>
+		</center>
+		<audio controls autoplay style="display:none">
+  			<source src="PON_PON_PON.mp3" type="audio/mpeg" loop=true volume=0.5>
+  			Your browser does not support this tag.
+		</audio>
+
+	</body>
+
+	<script type="text/javascript">
+		//construction functions
+		var Paddle = function(team,x,y,width,height,speed,direction) {
+			this.toString = function() {
+				return "[object Paddle]";
+			};
+			this.team = team || "black";	//in color, marks whom the paddle belongs to
+			this.x = x || 512;	//in pixiv, marks the left top corner of the paddle
+			this.y = y || 320;	//in pixiv, marks the left top corner of the paddle
+			this.width = width || 20;	//in pixiv
+			this.height = height || 80;	//in pixiv
+			this.speed = speed || 80;	//in pixiv per second
+			this.direction = direction || "stop";
+			this.reset = function(team,x,y,width,height,speed,direction) {
+				this.y = y || 320;	//in pixiv, marks the left top corner of the paddle
+				this.width = width || 20;	//in pixiv
+				this.height = height || 80;	//in pixiv
+				this.speed = speed || 50;	//in pixiv per second
+				this.direction = "stop";
+			}
+			console.log("Object: " + this + " Function: construction Action: new paddle created");
+		};
+		var Ball = function(direction,team,radius,x,y,speed) {
+			this.direction = direction;
+			this.x = x || 512;	//in pixiv, marks the center of the ball
+			this.y = y || 360;	//in pixiv, marks the center of the ball
+			this.radius = radius || 10;	//in pixiv
+			this.speed = speed || 30;	//in pixiv per second
+			this.team = team || "black";
+			this.setSpeed = function(speed) {
+				this.speed = speed || 0;
+				console.log("Object: " + this + " Function: setSpeed Action: ball\'s speed set to " + this.speed);
+			};
+			this.toString = function() {
+				return "[object Ball]";
+			};
+			this.reset = function(direction,team,radius,x,y,speed) {
+				this.direction = Math.random()*2*Math.PI;
+				this.x = x || 512;	//in pixiv, marks the center of the ball
+				this.y = y || 360;	//in pixiv, marks the center of the ball
+				this.radius = radius || 10;	//in pixiv
+				this.speed = speed || 30;	//in pixiv per second
+				this.team = team || "black";
+			};
+			console.log("Object: " + this + " Function: construction Action: new ball created");
+		};
+		var Player = function(color,side,position,score) {
+			this.team = color;	//set the color of the team
+			this.score = score || 0; //set the score of the team
+			this.toString = function() {
+				return "[object Player]";
+			};
+			this.printTeam = function() {
+				return "Player " + this.team;
+			};
+			if (side == "left") {
+				this.paddle = new Paddle(color,128,position);	//set the paddle of the team
+				console.log("Object: " + this + " Function: construction Action: new player created on the left side at y = " + this.position || 360);
+			} else if(side == "right") {
+				this.paddle = new Paddle(color,876,position);	//set the paddle of the team
+				console.log("Object: " + this + " Function: construction Action: new player created on the right side at y = " + this.position || 360);
+			} else {
+				console.log("ERROR: Object: " + this + " Function: construction Reason: invalid side input");
+			}
+			this.goal = function(scores) {
+				this.score += scores || 1;
+			}
+			this.reset = function(color,side,position,score) {
+				this.team = color;	//set the color of the team
+				this.score = score || 0; //set the score of the team
+				if (side == "left") {
+					this.paddle = new Paddle(color,128,position);	//set the paddle of the team
+					console.log("Object: " + this + " Function: construction Action: new player created on the left side at y = " + this.position || 360);
+				} else if(side == "right") {
+					this.paddle = new Paddle(color,876,position);	//set the paddle of the team
+					console.log("Object: " + this + " Function: construction Action: new player created on the right side at y = " + this.position || 360);
+				} else {
+					console.log("ERROR: Object: " + this + " Function: construction Reason: invalid side input");
+				};
+			};
+		};
+		//initialize
+		var stat=["menu"];
+		var player_L = {};
+		var player_R = {};
+		var ball = [{}];
+		var GUI = document.getElementById("screen");	//relates to the canvas in the HTML document
+		var plane = GUI.getContext("2d");
+		window.addEventListener('keydown', function(e) {
+			if (e.KeyCode == 87 || e.which == 87){	// On Press W
+        		player_L.paddle.direction = "up";
+   			 } else if (e.KeyCode == 83 || e.which == 83){	// On Press S
+        		player_L.paddle.direction = "down";
+   			 } else if (e.KeyCode == 38 || e.which == 38){	// On Press UP
+        		player_R.paddle.direction = "up";
+   			 } else if (e.KeyCode == 40 || e.which == 40){	// On Press DOWN
+        		player_R.paddle.direction = "down";
+   			 } else if (e.KeyCode == 32 || e.which == 32){	// On Press Spacebar
+        		if (stat[2]=="run") {
+        			stat[2] = "pause";
+        		} else if (stat[2]=="pause" || stat[2]=="win") {
+        			stat[2] = "run";
+        		};
+   			 };
+		});
+		window.addEventListener('keyup', function(e) {
+			if (e.KeyCode == 87 || e.which == 87 || e.KeyCode == 83 || e.which == 83) {
+				player_L.paddle.direction = "stop";
+			} else if (e.KeyCode == 38 || e.which == 38 || e.KeyCode == 40 || e.which == 40) {
+        		player_R.paddle.direction = "stop";
+   			}
+		});
+		//window.addEventListener('keypress', function(e) {
+			
+		//});
+
+		//animation
+		window.requestAnimFrame = (function(callback) {
+      //  return window.requestAnimationFrame || window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || 
+       return  function(callback) {
+        		window.setTimeout(callback, 1000/60);
+        	};
+      	})();
+    	var date = new Date();
+    	var time = date.getTime();
+    	var preTime = time;
+    	var winner;
+    	var roundLimit = 60000;
+    	var bonus = 1;
+    	function bonusTime() {
+    		ball[0].direction = Math.PI/2;
+    	};
+    	function unlimitedRoundTime() {
+    		roundLimit = 1/0;
+    	};
+
+		//active to repaint/refresh the canvas
+		function refresh() {
+			var date = new Date();
+        	var time = date.getTime();
+        	var timeDiff = time - preTime;
+        	if (roundLimit <= 0) {
+        		ball[0].reset();
+				player_L.paddle.reset();
+				player_R.paddle.reset();
+				roundLimit = 60000;
+				bonus = 1;
+				stat[2]="pause";	
+        	};
+        	preTime = time;
+		//	plane.clearRect(0,0,GUI.width,GUI.height);
+			plane.fillStyle = "White";
+			plane.fillRect(0,0,GUI.width, GUI.height);
+			plane.textAlign = "center";
+			if (stat[0] == "game") {
+				if (stat[1] == "classic") {
+					//draw the countdown
+					plane.font = "32px Comic Sans MS";
+					plane.fillStyle = "Black";
+					plane.lineWidth=5;
+					plane.fillText((roundLimit/1000).toFixed(2) + " sec left for this round",512,192);
+					//draw the title
+					plane.font = "72px Comic Sans MS";
+					plane.fillStyle = "Black";
+					plane.lineWidth=10;
+					plane.strokeRect(0,0,GUI.width,GUI.height);
+					plane.fillText("P O N G",512,128);
+					//draw the left player's paddle and scores
+					plane.fillStyle = player_L.team;
+					plane.fillText(player_L.score,192,128);
+					plane.fillRect(player_L.paddle.x,player_L.paddle.y,player_L.paddle.width,player_L.paddle.height);
+					//draw the right player's paddle and scores
+					plane.fillStyle = player_R.team;
+					plane.fillText(player_R.score,832,128);
+					plane.fillRect(player_R.paddle.x,player_R.paddle.y,player_R.paddle.width,player_R.paddle.height);
+					//draw the ball
+					plane.fillStyle = ball[0].team;
+					plane.beginPath();
+					plane.arc(ball[0].x,ball[0].y,ball[0].radius,0,2*Math.PI,false);
+					plane.closePath();
+					plane.fill();
+					if (stat[2] == "win") {
+						alert(winner.printTeam() + " wins the game!");
+						player_L.reset("blue","left");
+						player_R.reset("red","right");
+						stat[2] = "pause";
+					} else if (stat[2] == "pause") {
+						plane.fillStyle = "White";
+						plane.fillRect(464,270,96,120);
+						plane.lineWidth=4;
+						plane.beginPath();
+						plane.moveTo(400,270);
+						plane.lineTo(400,450);
+						plane.moveTo(624,270);
+						plane.lineTo(624,450);
+						plane.moveTo(430,240);
+						plane.lineTo(594,240);
+						plane.moveTo(430,480);
+						plane.lineTo(594,480);
+						plane.stroke();
+						plane.beginPath();
+						plane.arc(594, 450, 30 , 0, Math.PI/2, false);
+						plane.stroke();
+						plane.beginPath();
+						plane.arc(430, 450, 30 , Math.PI/2, Math.PI, false);
+						plane.stroke();
+						plane.beginPath();
+						plane.arc(430, 270, 30 , Math.PI, Math.PI*3/2, false);
+						plane.stroke();
+						plane.beginPath();
+						plane.arc(594, 270, 30 , Math.PI*3/2, Math.PI*2, false);
+						plane.stroke();
+						plane.lineWidth=32;
+						plane.fillStyle = "Black";
+						plane.beginPath();
+						plane.moveTo(480,280);
+						plane.lineTo(480,400);
+						plane.moveTo(544,280);
+						plane.lineTo(544,400);
+						plane.font = "32px Comic Sans MS";
+						plane.fillText("Game Paused",512,440);
+						plane.stroke();
+					} else if (stat[2] == "run") {
+						plane.font = (Math.sqrt(bonus) * 24) +"px Comic Sans MS";
+						if (bonus <= 64) {
+							plane.fillText("Bonus* "+bonus.toFixed(1),512,360);
+						} else {
+							plane.fillText("Max Bonus",512,360);
+						};
+						roundLimit -= timeDiff;
+						//update the ball status
+						ball[0].x += ball[0].speed*Math.cos(ball[0].direction)*timeDiff/100;
+						ball[0].y += ball[0].speed*Math.sin(ball[0].direction)*timeDiff/100;
+						//edge collision
+						if (ball[0].x+ball[0].radius-1024 >= 0) {
+							if (!(ball[0].team == player_R.paddle.team)) {player_L.goal();};
+							ball[0].reset();
+							player_L.paddle.reset();
+							player_R.paddle.reset();
+							roundLimit = 60000;
+							bonus = 1;
+							stat[2]="pause";
+						} else if (ball[0].x-ball[0].radius <= 0) {
+							if (!(ball[0].team == player_L.paddle.team)) {player_R.goal();};
+							ball[0].reset();
+							player_L.paddle.reset();
+							player_R.paddle.reset();
+							roundLimit = 60000;
+							bonus = 1;
+							stat[2]="pause";
+						};
+						if (player_L.paddle.direction == "up") {
+							player_L.paddle.y -= player_L.paddle.speed*timeDiff/100;
+						} else if (player_L.paddle.direction == "down") {
+							player_L.paddle.y += player_L.paddle.speed*timeDiff/100;
+						};
+						if (player_L.paddle.y <= 0) {
+							player_L.paddle.y = 0;
+							player_L.paddle.direction = "stop";
+						} else if (player_L.paddle.y >= 720 - player_L.paddle.height) {
+							player_L.paddle.y = 720 - player_R.paddle.height;
+							player_L.paddle.direction = "stop";
+						};
+						if (player_R.paddle.direction == "up") {
+							if (player_R.paddle.direction == "up") {
+								player_R.paddle.y -= player_R.paddle.speed*timeDiff/100;
+							} else if (player_R.paddle.direction == "down") {
+								player_R.paddle.y += player_R.paddle.speed*timeDiff/100;
+							};
+							player_R.paddle.y -= player_R.paddle.speed*timeDiff/100;
+						} else if (player_R.paddle.direction == "down") {
+							player_R.paddle.y += player_R.paddle.speed*timeDiff/100;
+						};
+						if (player_R.paddle.y <= 0) {
+							player_R.paddle.y = 0;
+							player_R.paddle.direction = "stop";
+						} else if (player_R.paddle.y >= 720 - player_R.paddle.height) {
+							player_R.paddle.y = 720 - player_R.paddle.height;
+							player_R.paddle.direction = "stop";
+						};
+						if ((Math.abs(ball[0].x + ball[0].radius - player_R.paddle.x) <= 2 || Math.abs(ball[0].x - ball[0].radius - player_R.paddle.x - player_R.paddle.width) <= 2) && ball[0].y + ball[0].radius - player_R.paddle.y >= 0 && ball[0].y - ball[0].radius - player_R.paddle.y - player_R.paddle.height <= 0) {
+							ball[0].direction = Math.PI - ball[0].direction;
+							ball[0].x += ball[0].speed*Math.cos(ball[0].direction)*timeDiff/100;
+							ball[0].y += ball[0].speed*Math.sin(ball[0].direction)*timeDiff/100;
+							if (bonus <= 64) {
+								ball[0].speed *= 1.25;
+								bonus *= 1.25;
+							};
+							ball[0].team = player_R.paddle.team;
+						} else if ((Math.abs(ball[0].y + ball[0].radius - player_R.paddle.y) <= 2 || Math.abs(ball[0].y - ball[0].radius - player_R.paddle.y - player_R.paddle.height) <= 2) && ball[0].x + ball[0].radius - player_R.paddle.x >= 0 && ball[0].x - ball[0].radius - player_R.paddle.x - player_R.paddle.width <=0) {
+							ball[0].direction = - ball[0].direction;
+							ball[0].x += ball[0].speed*Math.cos(ball[0].direction)*timeDiff/100;
+							ball[0].y += ball[0].speed*Math.sin(ball[0].direction)*timeDiff/100;
+							if (bonus <= 64) {
+								ball[0].speed *= 1.25;
+								bonus *= 1.25;
+							};
+							ball[0].team = player_R.paddle.team;
+						};
+						if ((Math.abs(ball[0].x + ball[0].radius - player_L.paddle.x) <= 2 || Math.abs(ball[0].x - ball[0].radius - player_L.paddle.x - player_L.paddle.width) <= 2) && ball[0].y + ball[0].radius - player_L.paddle.y >= 0 && ball[0].y - ball[0].radius - player_L.paddle.y - player_L.paddle.height <= 0) {
+							ball[0].direction = Math.PI - ball[0].direction;
+							ball[0].x += ball[0].speed*Math.cos(ball[0].direction)*timeDiff/100;
+							ball[0].y += ball[0].speed*Math.sin(ball[0].direction)*timeDiff/100;
+							if (bonus <= 64) {
+								ball[0].speed *= 1.25;
+								bonus *= 1.25;
+							};
+							ball[0].team = player_L.paddle.team;
+						} else if ((Math.abs(ball[0].y + ball[0].radius - player_L.paddle.y) <= 2 || Math.abs(ball[0].y - ball[0].radius - player_L.paddle.y - player_L.paddle.height) <= 2 ) && ball[0].x + ball[0].radius - player_L.paddle.x >= 0 && ball[0].x - ball[0].radius - player_L.paddle.x - player_L.paddle.width <=0) {
+							ball[0].direction = - ball[0].direction;
+							ball[0].x += ball[0].speed*Math.cos(ball[0].direction)*timeDiff/100;
+							ball[0].y += ball[0].speed*Math.sin(ball[0].direction)*timeDiff/100;
+							if (bonus <= 64) {
+								ball[0].speed *= 1.25;
+								bonus *= 1.25;
+							};
+							ball[0].team = player_L.paddle.team;
+						};
+						if (ball[0].y+ball[0].radius-720 >= 0 || ball[0].y-ball[0].radius <= 0) {
+							ball[0].direction = - ball[0].direction;
+							ball[0].x += ball[0].speed*Math.cos(ball[0].direction)*timeDiff/100;
+							ball[0].y += ball[0].speed*Math.sin(ball[0].direction)*timeDiff/100;
+							if (bonus <= 64) {
+								ball[0].speed *= 1.25;
+								bonus *= 1.25;
+							};
+						};
+						if (player_L.score - player_R.score >= 11) {
+							stat[2]="win";
+							winner = player_L;
+						} else if (player_L.score - player_R.score <= -11) {
+							stat[2]="win";
+							winner = player_R;
+						};
+					};
+				};
+			}/* else if (stat[1]="neo") {
+					//draw the countdown
+					plane.font = "32px Comic Sans MS";
+					plane.fillStyle = "Black";
+					plane.lineWidth=5;
+					plane.fillText((roundLimit/1000).toFixed(2) + " sec left for this round",512,192);
+					//draw the title
+					plane.font = "72px Comic Sans MS";
+					plane.fillStyle = "Black";
+					plane.lineWidth=10;
+					plane.strokeRect(0,0,GUI.width,GUI.height);
+					plane.fillText("P O N G",512,128);
+					//draw the left player's paddle and scores
+					plane.fillStyle = player_L.team;
+					plane.fillText(player_L.score,192,128);
+					plane.fillRect(player_L.paddle.x,player_L.paddle.y,player_L.paddle.width,player_L.paddle.height);
+					//draw the right player's paddle and scores
+					plane.fillStyle = player_R.team;
+					plane.fillText(player_R.score,832,128);
+					plane.fillRect(player_R.paddle.x,player_R.paddle.y,player_R.paddle.width,player_R.paddle.height);
+					//draw the ball
+					ball.forEach(function drawBall(ball_this) {	
+						plane.fillStyle = ball_this.team;
+						plane.beginPath();
+						plane.arc(ball_this.x,ball_this.y,ball_this.radius,0,2*Math.PI,false);
+						plane.closePath();
+						plane.fill();
+					});
+					if (stat[2] == "win") {
+						alert(winner.printTeam() + " wins the game!");
+						player_L.reset("blue","left");
+						player_R.reset("red","right");
+						stat[2] = "pause";
+					} else if (stat[2] == "pause") {
+						plane.fillStyle = "White";
+						plane.fillRect(464,270,96,120);
+						plane.lineWidth=4;
+						plane.beginPath();
+						plane.moveTo(400,270);
+						plane.lineTo(400,450);
+						plane.moveTo(624,270);
+						plane.lineTo(624,450);
+						plane.moveTo(430,240);
+						plane.lineTo(594,240);
+						plane.moveTo(430,480);
+						plane.lineTo(594,480);
+						plane.stroke();
+						plane.beginPath();
+						plane.arc(594, 450, 30 , 0, Math.PI/2, false);
+						plane.stroke();
+						plane.beginPath();
+						plane.arc(430, 450, 30 , Math.PI/2, Math.PI, false);
+						plane.stroke();
+						plane.beginPath();
+						plane.arc(430, 270, 30 , Math.PI, Math.PI*3/2, false);
+						plane.stroke();
+						plane.beginPath();
+						plane.arc(594, 270, 30 , Math.PI*3/2, Math.PI*2, false);
+						plane.stroke();
+						plane.lineWidth=32;
+						plane.fillStyle = "Black";
+						plane.beginPath();
+						plane.moveTo(480,280);
+						plane.lineTo(480,400);
+						plane.moveTo(544,280);
+						plane.lineTo(544,400);
+						plane.font = "32px Comic Sans MS";
+						plane.fillText("Game Paused",512,440);
+						plane.stroke();
+					} else if (stat[2] == "run") {
+						plane.font = (Math.sqrt(bonus) * 24) +"px Comic Sans MS";
+						if (bonus <= 64) {
+							plane.fillText("Bonus* "+bonus.toFixed(1),512,360);
+						} else {
+							plane.fillText("Max Bonus",512,360);
+						};
+						roundLimit -= timeDiff;
+						//update the ball status
+						ball.forEach(function updateBall(ball_this) {
+							ball_this.x += ball_this.speed*Math.cos(ball_this.direction)*timeDiff/100;
+							ball_this.y += ball_this.speed*Math.sin(ball_this.direction)*timeDiff/100;
+						});
+						//edge collision
+						ball.forEach(function edgeCollisionCheck(ball_this) {
+							if (ball_this.x+ball_this.radius-1024 >= 0) {
+								if (!(ball_this.team == player_R.paddle.team)) {player_L.goal();};
+								ball_this.reset();
+								player_L.paddle.reset();
+								player_R.paddle.reset();
+								roundLimit = 60000;
+								bonus = 1;
+								stat[2]="pause";
+							} else if (ball_this.x-ball_this.radius <= 0) {
+								if (!(ball_this.team == player_L.paddle.team)) {player_R.goal();};
+								ball_this.reset();
+								player_L.paddle.reset();
+								player_R.paddle.reset();
+								roundLimit = 60000;
+								bonus = 1;
+								stat[2]="pause";
+							};
+						});
+						if (player_L.paddle.direction == "up") {
+							player_L.paddle.y -= player_L.paddle.speed*timeDiff/100;
+						} else if (player_L.paddle.direction == "down") {
+							player_L.paddle.y += player_L.paddle.speed*timeDiff/100;
+						};
+						if (player_L.paddle.y <= 0) {
+							player_L.paddle.y = 0;
+							player_L.paddle.direction = "stop";
+						} else if (player_L.paddle.y >= 720 - player_L.paddle.height) {
+							player_L.paddle.y = 720 - player_R.paddle.height;
+							player_L.paddle.direction = "stop";
+						};
+						if (player_R.paddle.direction == "up") {
+							if (player_R.paddle.direction == "up") {
+								player_R.paddle.y -= player_R.paddle.speed*timeDiff/100;
+							} else if (player_R.paddle.direction == "down") {
+								player_R.paddle.y += player_R.paddle.speed*timeDiff/100;
+							};
+							player_R.paddle.y -= player_R.paddle.speed*timeDiff/100;
+						} else if (player_R.paddle.direction == "down") {
+							player_R.paddle.y += player_R.paddle.speed*timeDiff/100;
+						};
+						if (player_R.paddle.y <= 0) {
+							player_R.paddle.y = 0;
+							player_R.paddle.direction = "stop";
+						} else if (player_R.paddle.y >= 720 - player_R.paddle.height) {
+							player_R.paddle.y = 720 - player_R.paddle.height;
+							player_R.paddle.direction = "stop";
+						};
+						ball.forEach(function paddleCollisionCheck(ball_this) {
+							if ((Math.abs(ball_this.x + ball_this.radius - player_R.paddle.x) <= 2 || Math.abs(ball_this.x - ball_this.radius - player_R.paddle.x - player_R.paddle.width) <= 2) && ball_this.y + ball_this.radius - player_R.paddle.y >= 0 && ball_this.y - ball_this.radius - player_R.paddle.y - player_R.paddle.height <= 0) {
+								ball_this.direction = Math.PI - ball_this.direction;
+								ball_this.x += ball_this.speed*Math.cos(ball_this.direction)*timeDiff/100;
+								ball_this.y += ball_this.speed*Math.sin(ball_this.direction)*timeDiff/100;
+								if (bonus <= 64) {
+									ball_this.speed *= 1.25;
+									bonus *= 1.25;
+								};
+								ball_this.team = player_R.paddle.team;
+							} else if ((Math.abs(ball_this.y + ball_this.radius - player_R.paddle.y) <= 2 || Math.abs(ball_this.y - ball_this.radius - player_R.paddle.y - player_R.paddle.height) <= 2) && ball_this.x + ball_this.radius - player_R.paddle.x >= 0 && ball_this.x - ball_this.radius - player_R.paddle.x - player_R.paddle.width <=0) {
+								ball_this.direction = - ball_this.direction;
+								ball_this.x += ball_this.speed*Math.cos(ball_this.direction)*timeDiff/100;
+								ball_this.y += ball_this.speed*Math.sin(ball_this.direction)*timeDiff/100;
+								if (bonus <= 64) {
+									ball_this.speed *= 1.25;
+									bonus *= 1.25;
+								};
+								ball_this.team = player_R.paddle.team;
+							};
+							if ((Math.abs(ball_this.x + ball_this.radius - player_L.paddle.x) <= 2 || Math.abs(ball_this.x - ball_this.radius - player_L.paddle.x - player_L.paddle.width) <= 2) && ball_this.y + ball_this.radius - player_L.paddle.y >= 0 && ball_this.y - ball_this.radius - player_L.paddle.y - player_L.paddle.height <= 0) {
+								ball_this.direction = Math.PI - ball_this.direction;
+								ball_this.x += ball_this.speed*Math.cos(ball_this.direction)*timeDiff/100;
+								ball_this.y += ball_this.speed*Math.sin(ball_this.direction)*timeDiff/100;
+								if (bonus <= 64) {
+									ball_this.speed *= 1.25;
+									bonus *= 1.25;
+								};
+								ball_this.team = player_L.paddle.team;
+							} else if ((Math.abs(ball_this.y + ball_this.radius - player_L.paddle.y) <= 2 || Math.abs(ball_this.y - ball_this.radius - player_L.paddle.y - player_L.paddle.height) <= 2 ) && ball_this.x + ball_this.radius - player_L.paddle.x >= 0 && ball_this.x - ball_this.radius - player_L.paddle.x - player_L.paddle.width <=0) {
+								ball_this.direction = - ball_this.direction;
+								ball_this.x += ball_this.speed*Math.cos(ball_this.direction)*timeDiff/100;
+								ball_this.y += ball_this.speed*Math.sin(ball_this.direction)*timeDiff/100;
+								if (bonus <= 64) {
+									ball_this.speed *= 1.25;
+									bonus *= 1.25;
+								};
+								ball_this.team = player_L.paddle.team;
+							};
+							if (ball_this.y+ball_this.radius-720 >= 0 || ball_this.y-ball_this.radius <= 0) {
+								ball_this.direction = - ball_this.direction;
+								ball_this.x += ball_this.speed*Math.cos(ball_this.direction)*timeDiff/100;
+								ball_this.y += ball_this.speed*Math.sin(ball_this.direction)*timeDiff/100;
+								if (bonus <= 64) {
+									ball_this.speed *= 1.25;
+									bonus *= 1.25;
+								};
+							};
+							if (player_L.score - player_R.score >= 11) {
+								stat[2]="win";
+								winner = player_L;
+							} else if (player_L.score - player_R.score <= -11) {
+								stat[2]="win";
+								winner = player_R;
+							};
+						});
+					};
+				};
+			}*/ else if (stat[0]="menu") {
+				plane.font = "50px Comic Sans MS";
+				plane.textAlign = "center";
+				plane.strokeText("P O N G", GUI.width/2, GUI.height/10);
+				plane.fillStyle = ball[0].team;
+				plane.beginPath();
+				plane.arc(GUI.width*7/12,GUI.height/12,25,0,2*Math.PI,false);
+				plane.closePath();
+				plane.fill();
+				plane.font = "30px Comic Sans MS";
+				plane.beginPath();
+				plane.fillStyle = "black";
+				plane.strokeRect(GUI.width/3,GUI.height/6,GUI.width/3,GUI.height/12);
+				plane.fillText("Classic", GUI.width/2, GUI.height*4/18);
+				plane.fillStyle = "red";
+				plane.strokeRect(GUI.width/3,GUI.height*5/18,GUI.width/3,GUI.height/12);
+				plane.fillText("Neo(In progress)", GUI.width/2, GUI.height*6/18);
+				GUI.addEventListener("click", function menuClick(e){	//	function click
+					if (e.clientX>GUI.width/3 && e.clientX<GUI.width*2/3) {
+						if (e.clientY>GUI.height/6 && e.clientY<GUI.height/4) {
+							plane.clearRect(0,0,GUI.width,GUI.height);
+							player_L = new Player("blue","left");
+							player_R = new Player("red","right");
+							ball[0] = new Ball(Math.random()*2*Math.PI);
+							stat = ["game","classic","pause"];
+							GUI.removeEventListener("click",menuClick);
+						} else if (e.clientY>GUI.height*5/18 && e.clientY<GUI.height*13/36) {
+							alert("Neo is still in progress. There might be BUGs.");	
+							plane.clearRect(0,0,GUI.width,GUI.height);
+							player_L = new Player("blue","left");
+							player_R = new Player("red","right");
+							ball[0] = new Ball(Math.random()*2*Math.PI);
+							stat = ["game","neo","pause"];
+							GUI.removeEventListener("click",menuClick);
+						};
+					};
+				});
+			};
+			requestAnimFrame(function() {
+				refresh();
+			});
+		};
+		refresh();
+	</script>
+
+</html>
