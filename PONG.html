@@ -6,7 +6,7 @@
 			<canvas id="screen" width="1024" height="720"></canvas>
 		</center>
 		<audio controls autoplay style="display:none">
-  			<source src="PON_PON_PON.mp3" type="audio/mpeg" loop=true volume=0.5>
+  			<source src="PON_PON_PON.mp3" type="audio/mpeg" loop=true>
   			Your browser does not support this tag.
 		</audio>
 
@@ -98,6 +98,7 @@
 		var player_L = {};
 		var player_R = {};
 		var ball = [{}];
+		var botOn = false;
 		var GUI = document.getElementById("screen");	//relates to the canvas in the HTML document
 		var plane = GUI.getContext("2d");
 		window.addEventListener('keydown', function(e) {
@@ -115,6 +116,13 @@
         		} else if (stat[2]=="pause" || stat[2]=="win") {
         			stat[2] = "run";
         		};
+   			 } else if (e.KeyCode == 83 || e.which == 83) {	// On Press B
+   			 	//triger bot
+   			 	if (botOn) {
+
+   			 	} else {
+   			 		botOn = true;
+   			 	}
    			 };
 		});
 		window.addEventListener('keyup', function(e) {
@@ -538,43 +546,47 @@
 					};
 				};
 			}*/ else if (stat[0]="menu") {
-				plane.font = "50px Comic Sans MS";
-				plane.textAlign = "center";
-				plane.strokeText("P O N G", GUI.width/2, GUI.height/10);
-				plane.fillStyle = ball[0].team;
-				plane.beginPath();
-				plane.arc(GUI.width*7/12,GUI.height/12,25,0,2*Math.PI,false);
-				plane.closePath();
-				plane.fill();
-				plane.font = "30px Comic Sans MS";
-				plane.beginPath();
-				plane.fillStyle = "black";
-				plane.strokeRect(GUI.width/3,GUI.height/6,GUI.width/3,GUI.height/12);
-				plane.fillText("Classic", GUI.width/2, GUI.height*4/18);
-				plane.fillStyle = "red";
-				plane.strokeRect(GUI.width/3,GUI.height*5/18,GUI.width/3,GUI.height/12);
-				plane.fillText("Neo(In progress)", GUI.width/2, GUI.height*6/18);
-				GUI.addEventListener("click", function menuClick(e){	//	function click
-					if (e.clientX>GUI.width/3 && e.clientX<GUI.width*2/3) {
-						if (e.clientY>GUI.height/6 && e.clientY<GUI.height/4) {
-							plane.clearRect(0,0,GUI.width,GUI.height);
-							player_L = new Player("blue","left");
-							player_R = new Player("red","right");
-							ball[0] = new Ball(Math.random()*2*Math.PI);
-							stat = ["game","classic","pause"];
-							GUI.removeEventListener("click",menuClick);
-						} else if (e.clientY>GUI.height*5/18 && e.clientY<GUI.height*13/36) {
-							alert("Neo is still in progress. There might be BUGs.");	
-							plane.clearRect(0,0,GUI.width,GUI.height);
-							player_L = new Player("blue","left");
-							player_R = new Player("red","right");
-							ball[0] = new Ball(Math.random()*2*Math.PI);
-							stat = ["game","neo","pause"];
-							GUI.removeEventListener("click",menuClick);
+					plane.fillStyle = "Black";
+					plane.lineWidth=10;
+					plane.strokeRect(0,0,GUI.width,GUI.height);
+					plane.lineWidth=4;
+					plane.font = "50px Comic Sans MS";
+					plane.textAlign = "center";
+					plane.strokeText("P O N G", GUI.width/2, GUI.height/10);
+					plane.fillStyle = "black";
+					plane.beginPath();
+					plane.arc(GUI.width*17/36,GUI.height/10-20,25,0,2*Math.PI,false);
+					plane.closePath();
+					plane.fill();
+					plane.font = "30px Comic Sans MS";
+					plane.beginPath();
+					plane.fillStyle = "black";
+					plane.strokeRect(GUI.width/3,GUI.height/6,GUI.width/3,GUI.height/12);
+					plane.fillText("Classic", GUI.width/2, GUI.height*4/18);
+					plane.fillStyle = "red";
+					plane.strokeRect(GUI.width/3,GUI.height*5/18,GUI.width/3,GUI.height/12);
+					plane.fillText("Neo(In progress)", GUI.width/2, GUI.height*6/18);
+					GUI.addEventListener("click", function menuClick(e){	//	function click
+						if (e.clientX>=550 && e.clientX<=890) {
+							if (e.clientY>=130 && e.clientY<=190) {
+								plane.clearRect(0,0,GUI.width,GUI.height);
+								player_L = new Player("blue","left");
+								player_R = new Player("red","right");
+								ball[0] = new Ball(Math.random()*2*Math.PI);
+								stat = ["game","classic","pause"];
+								GUI.removeEventListener("click",menuClick);
+							} else if (e.clientY>GUI.height*5/18 && e.clientY<GUI.height*13/36) {
+								alert("Neo is still in progress. There might be BUGs.");	
+								plane.clearRect(0,0,GUI.width,GUI.height);
+								player_L = new Player("blue","left");
+								player_R = new Player("red","right");
+								ball[0] = new Ball(Math.random()*2*Math.PI);
+								stat = ["game","neo","pause"];
+								GUI.removeEventListener("click",menuClick);
+							};
 						};
-					};
-				});
-			};
+					});
+				};
 			requestAnimFrame(function() {
 				refresh();
 			});
