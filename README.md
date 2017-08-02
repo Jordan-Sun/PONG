@@ -8,3 +8,5 @@ Press key:UP/DOWN to move paddle on the right side UP/DOWN (Disabled when bot is
 *Cheat Code*
 Press key:R to restart round
 Press key:C to make ball's route visible/transparent
+*Report BUGs & Make Comments*
+Email: jordan.zhuoran.sun@gmail.com
