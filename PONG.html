@@ -96,13 +96,13 @@
 			this.y = y || 320;	//in pixiv, marks the left top corner of the paddle
 			this.width = width || 5;	//in pixiv
 			this.height = height || 80;	//in pixiv
-			this.speed = speed || 80;	//in pixiv per second
+			this.speed = speed || 60;	//in pixiv per second
 			this.direction = direction || "stop";
 			this.reset = function(team,x,y,width,height,speed,direction) {
 				this.y = y || 320;	//in pixiv, marks the left top corner of the paddle
 				this.width = width || 5;	//in pixiv
 				this.height = height || 80;	//in pixiv
-				this.speed = speed || 80;	//in pixiv per second
+				this.speed = speed || 60;	//in pixiv per second
 				this.direction = "stop";
 			}
 			console.log("Object: " + this + " Function: construction Action: new paddle created");
@@ -201,13 +201,17 @@
 		window.addEventListener('keydown', function(e) {
 			if (e.KeyCode == 87 || e.which == 87){	// On Press W
         		player_L.paddle.direction = "up";
-   			 } else if (e.KeyCode == 83 || e.which == 83){	// On Press S
+   			};
+   			if (e.KeyCode == 83 || e.which == 83){	// On Press S
         		player_L.paddle.direction = "down";
-   			 } else if ((e.KeyCode == 38 || e.which == 38) && (!botOn)) {	// On Press UP
+   			};
+   			if ((e.KeyCode == 38 || e.which == 38) && (!botOn)) {	// On Press UP
         		player_R.paddle.direction = "up";
-   			 } else if ((e.KeyCode == 40 || e.which == 40) && (!botOn)) {	// On Press DOWN
+   			};
+   			if ((e.KeyCode == 40 || e.which == 40) && (!botOn)) {	// On Press DOWN
         		player_R.paddle.direction = "down";
-   			 } else if (e.KeyCode == 32 || e.which == 32){	// On Press Spacebar
+   			};
+   			if (e.KeyCode == 32 || e.which == 32){	// On Press Spacebar
         		if (stat[2]=="run") {
         			stat[2] = "pause";
         			soundEffect.gamePause.play();
@@ -215,7 +219,8 @@
         			stat[2] = "run";
         			soundEffect.gameResume.play();
         		};
-   			 } else if (e.KeyCode == 66 || e.which == 66) {	// On Press B
+   			};
+   			if (e.KeyCode == 66 || e.which == 66) {	// On Press B
    			 	//triger bot
    			 	if (botOn) {
    			 		botOn = false;
@@ -231,7 +236,8 @@
 				roundLimit = 5000;
 				bonus = 0;
 				stat[2]="pause";
-   			 } else if (e.KeyCode == 82 || e.which == 82) {	// On Press R
+   			};
+   			if (e.KeyCode == 82 || e.which == 82) {	// On Press R
    			 	//reset round
    			 	ball[0].reset();
 				player_L.paddle.reset();
@@ -240,7 +246,8 @@
 				bonus = 0;
 				stat[2]="pause";
 				soundEffect.tie.play();
-   			 } else if (e.KeyCode == 77 || e.which == 77) {	// On Press M
+   			};
+   			 if (e.KeyCode == 77 || e.which == 77) {	// On Press M
    			 	if (backgroundMusic.paused) {
    			 		backgroundMusic.play();
    			 		soundEffect.backgroundMusicResume.play();
@@ -248,7 +255,8 @@
    			 		backgroundMusic.pause();
    			 		soundEffect.backgroundMusicPause.play();
    			 	};
-   			} else if (e.KeyCode == 78 || e.which == 78) {	// On Press N
+   			};
+   			if (e.KeyCode == 78 || e.which == 78) {	// On Press N
    			 	backgroundMusic.pause();
    			 	if (currentSong < backgroundMusicList.length - 1) {
    			 		currentSong ++;
@@ -258,13 +266,14 @@
    			 	backgroundMusic.src = "BGM/" + backgroundMusicList[currentSong];
    			 	soundEffect.backgroundMusicChange.play();
    			 	backgroundMusic.play();
-   			 } else if (e.KeyCode == 67 || e.which == 67) {	// On Press C
+   			};
+   			if (e.KeyCode == 67 || e.which == 67) {	// On Press C
    			 	if (cheat) {
    			 		cheat = false;
    			 	} else {
    			 		cheat = true;
    			 	};
-   			 };
+   			};
 		});
 		window.addEventListener('keyup', function(e) {
 			if (e.KeyCode == 87 || e.which == 87 || e.KeyCode == 83 || e.which == 83) {
@@ -288,7 +297,7 @@
     	var time = date.getTime();
     	var preTime = time;
     	var winner;
-    	var roundLimit = 5000;
+    	var roundLimit = 8000;
     	var bonus = 0;
     	var backgroundMusic = document.getElementById("BGM");
     	var backgroundMusicList = ["PON_PON_PON.mp3","Renai_Circulation.mp3","Alice.mp3","To_The_Limit.mp3","Dango_Daikazoku.mp3","Toki_Wo_Kizamu_Uta.mp3","Decent_Black.mp3","My_Soul_Your_Beats.mp3","Tabi_No_Owari.mp3","Theme_Of_SSS.mp3","This_Game.mp3"];
@@ -639,8 +648,8 @@
 				plane.strokeRect(GUI.width/3,GUI.height/6,GUI.width/3,GUI.height/12);
 				plane.fillText("Classic", GUI.width/2, GUI.height*4/18);
 				GUI.addEventListener("click", function menuClick(e){	//	function click
-					if (e.clientX>=550 && e.clientX<=890) {
-						if (e.clientY>=130 && e.clientY<=190) {
+					if (e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft - GUI.offsetLeft >= GUI.width/3 && e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft - GUI.offsetLeft <=GUI.width*2/3) {
+						if (e.clientY + document.body.scrollTop + document.documentElement.scrollTop - GUI.offsetTop >= GUI.height/6 && e.clientY + document.body.scrollTop + document.documentElement.scrollTop - GUI.offsetTop <= GUI.height/4) {
 							plane.clearRect(0,0,GUI.width,GUI.height);
 							player_L = new Player("blue","left");
 							player_R = new Player("red","right");
