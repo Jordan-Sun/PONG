@@ -1,6 +1,6 @@
 {
   "name": "pong",
-  "version": "1.0.0",
+  "version": "0.3.3",
   "description": "extensible pong game",
   "main": "index.js",
   "engines": {
@@ -12,14 +12,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kingxkok/pong.git"
+    "url": "git+https://github.com/jordan-sun/pong.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/kingxkok/pong/issues"
+    "url": "https://github.com/jordan-sun/pong/issues"
   },
-  "homepage": "https://github.com/kingxkok/pong#readme",
+  "homepage": "https://github.com/jordan-sun/pong#readme",
   "dependencies": {
     "express": "^4.15.3"
   },
