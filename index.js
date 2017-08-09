@@ -6,7 +6,7 @@ var fs = require('fs');
 app.use(express.static('public'));
 
 app.get('/', function(req, res) {
-    fs.readFile(__dirname + '/pongv4a.html', 'utf8', function(err, text){
+    fs.readFile(__dirname + '/pong_online2.html', 'utf8', function(err, text){
         res.send(text);
     });
 });
