@@ -8,8 +8,10 @@
   <body>
     <center> <canvas id='screen' width='1024' height='720'> </canvas> </center>
     <img id='Cat' src="PIC/Nyan_Cat0.jpg" style='display:none' width='1024' height='720'>
+    <img id='Icon' src="PIC/Excited_Frog.png" style='display:none'>
+    <img id='Universe' src="PIC/Space.png" style='display:none'>
     <audio id='BGM' controls autoplay style='display:none'>
-        <source src='BGM/PON_PON_PON.mp3' type='audio/mpeg' loop=true>
+        <source src='BGM/Atari_Original_Soundtrack.mp3' type='audio/mpeg' loop=true>
         Your browser does not support this tag.
     </audio>
     <audio id='BWG' controls style='display:none'>
@@ -204,6 +206,7 @@
       };
     };
     //initialize
+    var lifeSec = 0;
     var stat=['menu'];
     var player_L = {};
     var player_R = {};
@@ -273,6 +276,9 @@
             cheat = true;
           };
         };
+      } 
+      if (e.KeyCode == 76 || e.which == 76) {  // On Press L
+        loop = !(loop);
       };
       if (e.KeyCode == 77 || e.which == 77) {  // On Press M
         if (backgroundMusic.paused) {
@@ -318,9 +324,11 @@
     var alpha = 0;
     var alphaAddDirection = 1;
     var backgroundMusic = document.getElementById('BGM');
-    var backgroundMusicList = ['PON_PON_PON.mp3','Renai_Circulation.mp3','Alice.mp3','To_The_Limit.mp3','Dango_Daikazoku.mp3','Toki_Wo_Kizamu_Uta.mp3','Decent_Black.mp3','My_Soul_Your_Beats.mp3','Tabi_No_Owari.mp3','Theme_Of_SSS.mp3','This_Game.mp3','Nyan_Cat.mp3'];
+    var backgroundMusicList = ['Atari_Original_Soundtrack.mp3','Renai_Circulation.mp3','Alice.mp3','To_The_Limit.mp3','Dango_Daikazoku.mp3','Toki_Wo_Kizamu_Uta.mp3','Decent_Black.mp3','My_Soul_Your_Beats.mp3','Tabi_No_Owari.mp3','Theme_Of_SSS.mp3','This_Game.mp3','Nyan_Cat.mp3','PON_PON_PON.mp3'];
     var currentSong = 0;
     var textShownTime = -1;
+    var textShownX = 0;
+    var textShownY = 0;
     var soundEffect = {
       redWinRound : document.getElementById('RWR'),
       redWinGame : document.getElementById('RWG'),
@@ -346,9 +354,13 @@
       SE04 : document.getElementById('SE04')
     };
     var cat=document.getElementById("Cat");
+    var icon=document.getElementById("Icon");
+    var universe=document.getElementById("Universe");
     var currentGif = 0;
     var stack = 0;
+    var loop = true;
     backgroundMusic.addEventListener('ended', function() {
+    if (!loop) {
       backgroundMusic.pause();
       if (currentSong < backgroundMusicList.length - 1) {
         currentSong ++;
@@ -357,7 +369,8 @@
       };
       backgroundMusic.src = 'BGM/' + backgroundMusicList[currentSong];
       backgroundMusic.play();
-			backgroundMusic.volume = 1/9;
+      backgroundMusic.volume = 1/6;
+    };
     });
     function bonusTime() {
       ball[0].direction = Math.PI/5;
@@ -368,7 +381,7 @@
     for (var effect in soundEffect) {
       effect.volume = 1/3;
     };
-    backgroundMusic.volume = 1/9;
+    backgroundMusic.volume = 1/6;
     function omitCharacter(inputString) {
       for (i = inputString.length-1; i >= 0; i --) {
         if (inputString[i] == '3' && inputString[i-1] == 'p' && inputString[i-2] == 'm' && inputString[i-3] == '.') {
@@ -383,7 +396,7 @@
     function refresh() {
       if (currentSong == 11) {
         plane.drawImage(cat,0,0);
-        if (stack > 10) {
+        if (stack > 4) {
           cat.src = 'PIC/Nyan_Cat'+currentGif+'.jpg';
           if (currentGif < 11) {
             currentGif ++;
@@ -406,12 +419,29 @@
       var timeDiff = time - preTime;
       preTime = time;
       plane.fillStyle = 'rgba(255,255,255,0.7)';
+      if (currentSong == 0) {plane.drawImage(universe,0,0);};
       plane.fillRect(0,0,GUI.width, GUI.height);
+      if (stat[0] != 'menu') {
+        plane.drawImage(icon,5,610);
+        plane.fillStyle = 'Green';
+        plane.textAlign = 'left';
+        plane.font = '16px Comic Sans MS';
+        plane.fillText(lifeSec + ' s',128,704);
+      } else {
+         plane.drawImage(icon,384,16);
+      };
+      if (textShownTime >= 0) {
+        plane.font = '16px Comic Sans MS';
+        plane.fillStyle = 'Green';
+        plane.fillText('SE -1s',textShownX,textShownY);
+        plane.fillText('🐸 +1s',75,600);
+      };
       plane.textAlign = 'left';
       plane.font = '16px Comic Sans MS';
       plane.fillStyle = 'Black';
-      plane.fillText('Current Background Music: ' + omitCharacter(backgroundMusicList[currentSong]),640,688);
-      plane.fillText('Current Play Time: ' + backgroundMusic.currentTime.toFixed(2) + ' / '+ backgroundMusic.duration.toFixed(2) ,640,704);
+      plane.fillText('Current Music: ' + omitCharacter(backgroundMusicList[currentSong]),512,688);
+      plane.fillText('Current Play Time: ' + backgroundMusic.currentTime.toFixed(2) + ' / '+ backgroundMusic.duration.toFixed(2) ,512,704);
+      plane.fillText('Loop: ' + loop ,896,704);
       plane.textAlign = 'center';
       plane.strokeStyle = 'Black';
       plane.lineWidth=10;
@@ -420,12 +450,16 @@
       plane.font = '128px Comic Sans MS';
       plane.textAlign = 'center';
       plane.fillStyle = 'Red';
+      if (currentSong == 0) {plane.fillStyle = 'Black'};
       plane.fillText('P', GUI.width*3/9, GUI.height/6);
       plane.fillStyle = 'Black';
+      if (currentSong == 0) {plane.fillStyle = 'Black'};
       plane.fillText('O', GUI.width*4/9, GUI.height/6);
       plane.fillStyle = 'Green';
+      if (currentSong == 0) {plane.fillStyle = 'Black'};
       plane.fillText('N', GUI.width*5/9, GUI.height/6);
       plane.fillStyle = 'Blue';
+      if (currentSong == 0) {plane.fillStyle = 'Black'};
       plane.fillText('G', GUI.width*6/9, GUI.height/6);
       if (stat[0] == 'game') {
         if (stat[1] == 'offline') {
@@ -517,12 +551,6 @@
             plane.lineTo(1024,360);
             plane.closePath();*/
           } else if (stat[2] == 'run') {
-          	if (textShownTime >= 0) {
-          		plane.font = '16px Comic Sans MS';
-          		plane.fillStyle = 'Green';
-          		plane.fillText('🐸: -1s',textShownX,textShownY);
-          		textShownY -= timeDiff/10;
-          	};
             if (botOn) {
             if (ball[0].x > 512) {
               if (ball[0].y + ball[0].radius - player_R.paddle.y < 0 || ball[0].y - ball[0].radius - player_R.paddle.y - player_R.paddle.height > 0) {
@@ -553,6 +581,7 @@
             };
             roundLimit -= timeDiff;
           	textShownTime -= timeDiff;
+            textShownY -= timeDiff/10;
             //update the ball status
             ball[0].x += ball[0].speed*Math.cos(ball[0].direction)*timeDiff/100;
             ball[0].y += ball[0].speed*Math.sin(ball[0].direction)*timeDiff/100;
@@ -630,6 +659,7 @@
                 ball[0].y += ball[0].speed*Math.sin(ball[0].direction)*timeDiff/90;
                 roundLimit -= 1000;
                 textShownTime = 1000;
+                lifeSec ++;
                 textShownX = ball[0].x;
                 textShownY = ball[0].y;
                 soundEffect.hit.play();
@@ -657,6 +687,7 @@
                 ball[0].y += ball[0].speed*Math.sin(ball[0].direction)*timeDiff/90;
                 roundLimit -= 1000;
                 textShownTime = 1000;
+                lifeSec ++;
                 textShownX = ball[0].x;
                 textShownY = ball[0].y;
                 soundEffect.hit.play();
@@ -674,6 +705,7 @@
               ball[0].y += ball[0].speed*Math.sin(ball[0].direction)*timeDiff/90;
                 roundLimit -= 1000;
                 textShownTime = 1000;
+                lifeSec ++;
                 textShownX = ball[0].x;
                 textShownY = ball[0].y;
               soundEffect.hit.play();
@@ -871,8 +903,10 @@
         plane.textAlign = 'left';
         plane.font = '16px Comic Sans MS';
         plane.fillStyle = 'Black';
-        plane.fillText('Current Background Music: ' + omitCharacter(backgroundMusicList[currentSong]),640,688);
-        plane.fillText('Current Play Time: ' + backgroundMusic.currentTime.toFixed(2) + ' / '+ backgroundMusic.duration.toFixed(2) ,640,704);
+        plane.fillStyle = 'Black';
+        plane.fillText('Current Music: ' + omitCharacter(backgroundMusicList[currentSong]),512,688);
+        plane.fillText('Current Play Time: ' + backgroundMusic.currentTime.toFixed(2) + ' / '+ backgroundMusic.duration.toFixed(2) ,512,704);
+        plane.fillText('Loop: ' + loop ,896,704);
         plane.textAlign = 'center';
         plane.strokeStyle = 'Black';
         plane.lineWidth=10;
@@ -881,19 +915,23 @@
         plane.font = '128px Comic Sans MS';
         plane.textAlign = 'center';
         plane.fillStyle = 'Red';
+        if (currentSong == 0) {plane.fillStyle = 'Black'};
         plane.fillText('P', GUI.width*3/9, GUI.height/6);
         plane.fillStyle = 'Black';
+        if (currentSong == 0) {plane.fillStyle = 'Black'};
         plane.fillText('O', GUI.width*4/9, GUI.height/6);
         plane.fillStyle = 'Green';
+        if (currentSong == 0) {plane.fillStyle = 'Black'};
         plane.fillText('N', GUI.width*5/9, GUI.height/6);
         plane.fillStyle = 'Blue';
+        if (currentSong == 0) {plane.fillStyle = 'Black'};
         plane.fillText('G', GUI.width*6/9, GUI.height/6);
-          //cancer
-          plane.font = '24px Comic Sans MS';
-          plane.scale(0.8+alpha/4,0.8+alpha/4);
+        //cancer
+        plane.font = '24px Comic Sans MS';
+        plane.scale(0.8+alpha/4,0.8+alpha/4);
         plane.fillStyle = 'rgba(0,' + ~~((1.6-alpha)*255) + ',0,' + (alpha-0.16) +')';
         plane.fillText('Click / Tap on anywhere to START', GUI.width/2/(0.8+alpha/4), (GUI.height*1/2 + alpha*4)/(0.8+alpha/4));
-          plane.scale(1/(0.8+alpha/4),1/(0.8+alpha/4));
+        plane.scale(1/(0.8+alpha/4),1/(0.8+alpha/4));
         GUI.addEventListener('mousedown', function menuClick(e){  //  function click
               plane.clearRect(0,0,GUI.width,GUI.height);
               player_L = new Player('blue','left');
@@ -901,9 +939,11 @@
               ball[0] = new Ball(Math.random()*2*Math.PI);
               stat = ['game','offline','pause'];
               soundEffect.gameStart.play();
-              currentSong = 11;
-          	  backgroundMusic.src = 'BGM/' + backgroundMusicList[currentSong];
-    		      backgroundMusic.play();
+              if (!loop) {  
+                currentSong = 11;
+                backgroundMusic.src = 'BGM/' + backgroundMusicList[currentSong];
+                backgroundMusic.play();
+              };
               GUI.removeEventListener('mousedown',menuClick);
               GUI.addEventListener('touchstart', function inGameTouchStart(e){  //  function click
                 relativeX = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft - GUI.offsetLeft;
