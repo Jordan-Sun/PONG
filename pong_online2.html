@@ -368,12 +368,12 @@
         currentSong = 0;
       };
       backgroundMusic.src = 'BGM/' + backgroundMusicList[currentSong];
-      backgroundMusic.play();
-      backgroundMusic.volume = 1/6;
     };
+      backgroundMusic.volume = 1/6;
+      backgroundMusic.play();
     });
     function bonusTime() {
-      ball[0].direction = Math.PI/5;
+      ball[0].direction = Math.PI/2;
     };
     function unlimitedRoundTime() {
       roundLimit = 1/0;
@@ -942,8 +942,8 @@
               if (!loop) {  
                 currentSong = 11;
                 backgroundMusic.src = 'BGM/' + backgroundMusicList[currentSong];
-                backgroundMusic.play();
               };
+              backgroundMusic.play();
               GUI.removeEventListener('mousedown',menuClick);
               GUI.addEventListener('touchstart', function inGameTouchStart(e){  //  function click
                 relativeX = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft - GUI.offsetLeft;
